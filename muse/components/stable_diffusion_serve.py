@@ -30,6 +30,16 @@ from muse.utility.data_io import (Data, DataBatch,  # noqa: E402
 from PIL import Image  # noqa: E402
 
 
+@dataclass
+class ModelBuildConfig(L.BuildConfig):
+    # !git clone https://github.com/openai/point-e.git
+    # !cd point-e && python -m pip install -e . && cd ../
+    def build_commands(self):
+        return [
+            "git clone https://github.com/openai/point-e.git",  # noqa: E501
+            "cd point-e && pip install -e .",
+        ]
+
 class StableDiffusionServe(L.LightningWork):
     """The StableDiffusionServer handles the prediction.
 
@@ -39,7 +49,7 @@ class StableDiffusionServe(L.LightningWork):
     def __init__(
         self, safety_embeddings_drive: Optional[Drive] = None, safety_embeddings_filename: str = None, **kwargs
     ):
-        super().__init__(**kwargs)
+        super().__init__(cloud_build_config=ModelBuildConfig(), **kwargs)
         self.safety_embeddings_drive = safety_embeddings_drive
         self.safety_embeddings_filename = safety_embeddings_filename
         self._model = None
