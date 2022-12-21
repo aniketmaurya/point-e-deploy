@@ -92,7 +92,7 @@ class StableDiffusionServe(L.LightningWork):
         my_stringIObytes = io.BytesIO()
         plt.savefig(my_stringIObytes, format="jpg")
         my_stringIObytes.seek(0)
-        my_base64_jpgData = base64.b64encode(my_stringIObytes.read())
+        my_base64_jpgData = base64.b64encode(my_stringIObytes.read()).decode("utf-8")
         return f"data:image/png;base64,{my_base64_jpgData}"
 
     def predict(self, prompts: List[Data], entry_time: int):
