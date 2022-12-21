@@ -1,3 +1,6 @@
+# !git clone https://github.com/openai/point-e.git
+# !cd point-e && python -m pip install -e . && cd ../
+
 import base64
 import io
 import os
@@ -87,7 +90,7 @@ class StableDiffusionServe(L.LightningWork):
 
     def predict(self, prompts: List[Data], entry_time: int):
         from point_e.util.plotting import plot_point_cloud
-        
+
         samples = None
         prompts = [data.prompt for data in prompts]
         for x in tqdm(self._sampler.sample_batch_progressive(batch_size=1, model_kwargs=dict(texts=prompts))):
