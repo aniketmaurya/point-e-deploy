@@ -1,3 +1,6 @@
+# !git clone https://github.com/openai/point-e.git
+# !cd point-e && pip install -e . && cd ../
+
 import base64
 import os
 import os.path
@@ -41,16 +44,6 @@ class SafetyChecker:
         return torch.any(similarity > 0.3, dim=1).tolist()
 
 
-@dataclass
-class DiffusionBuildConfig(L.BuildConfig):
-    def build_commands(self):
-        return [
-            "python -m pip install https://github.com/aniketmaurya/stable_diffusion_inference/archive/refs/tags/v0.0.2.tar.gz",  # noqa: E501
-            "pip install -e git+https://github.com/CompVis/taming-transformers.git@master#egg=taming-transformers -q",
-            "pip install -U 'clip@ git+https://github.com/openai/CLIP.git@main' -q",
-        ]
-
-
 class StableDiffusionServe(L.LightningWork):
     """The StableDiffusionServer handles the prediction.
 
@@ -60,7 +53,7 @@ class StableDiffusionServe(L.LightningWork):
     def __init__(
         self, safety_embeddings_drive: Optional[Drive] = None, safety_embeddings_filename: str = None, **kwargs
     ):
-        super().__init__(cloud_build_config=DiffusionBuildConfig(), **kwargs)
+        super().__init__(**kwargs)
         self.safety_embeddings_drive = safety_embeddings_drive
         self.safety_embeddings_filename = safety_embeddings_filename
         self._model = None

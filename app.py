@@ -14,7 +14,6 @@ from muse import (
     LoadBalancer,
     Locust,
     MuseSlackCommandBot,
-    SafetyCheckerEmbedding,
     StableDiffusionServe,
 )
 from muse.CONST import ENABLE_ANALYTICS, MUSE_GPU_TYPE, MUSE_MIN_WORKERS
@@ -87,19 +86,11 @@ class MuseFlow(L.LightningFlow):
         self.gpu_type = gpu_type
         self._last_autoscale = time.time()
 
-        # Create Drive to store Safety Checker embeddings
-        self.safety_embeddings_drive = Drive("lit://embeddings")
-
-        # Safety Checker Embedding Work to create and store embeddings in the Drive
-        self.safety_checker_embedding_work = SafetyCheckerEmbedding(drive=self.safety_embeddings_drive)
-
         self.load_balancer = LoadBalancer(
             max_batch_size=max_batch_size, batch_timeout_secs=batch_timeout_secs, cache_calls=True, parallel=True
         )
         for i in range(initial_num_workers):
             work = StableDiffusionServe(
-                safety_embeddings_drive=self.safety_embeddings_drive,
-                safety_embeddings_filename=self.safety_checker_embedding_work.safety_embeddings_filename,
                 cloud_compute=L.CloudCompute(gpu_type, disk_size=30),
                 cache_calls=True,
                 parallel=True,
@@ -154,15 +145,6 @@ class MuseFlow(L.LightningFlow):
         # provision these works early
         if not self.load_balancer.is_running:
             self.load_balancer.run([])
-        if not self.slack_bot.is_running:
-            self.slack_bot.run("")
-
-        if not self.safety_embeddings_ready:
-            self.safety_checker_embedding_work.run()
-
-        if not self.safety_embeddings_ready and self.safety_checker_embedding_work.has_succeeded:
-            self.safety_embeddings_ready = True
-            self.safety_checker_embedding_work.stop()
 
         for model_serve in self.model_servers:
             model_serve.run()
@@ -178,8 +160,7 @@ class MuseFlow(L.LightningFlow):
             if self.slack_bot is not None:
                 self.slack_bot.run(self.load_balancer.url)
                 self.slack_bot_url = self.slack_bot.url
-                if self.slack_bot.url and not self.printed_url:
-                    print("Slack Bot Work ready with URL=", self.slack_bot.url)
+                if not self.printed_url:
                     print("model serve url=", self.load_balancer.url)
                     print("API component url=", self.api_component.state_vars["vars"]["_layout"]["target"])
                     self.printed_url = True

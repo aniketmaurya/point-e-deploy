@@ -3,8 +3,7 @@ from muse.components import (
     LoadBalancer,
     Locust,
     MuseSlackCommandBot,
-    SafetyCheckerEmbedding,
     StableDiffusionServe,
 )
 
-__all__ = ["MuseSlackCommandBot", "StableDiffusionServe", "LoadBalancer", "Locust", "SafetyCheckerEmbedding"]
+__all__ = ["MuseSlackCommandBot", "StableDiffusionServe", "LoadBalancer", "Locust"]
