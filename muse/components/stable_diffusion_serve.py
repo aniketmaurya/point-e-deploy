@@ -152,7 +152,7 @@ class StableDiffusionServe(L.LightningWork):
                     data.batch,
                     entry_time=entry_time,
                 ).result(timeout=INFERENCE_REQUEST_TIMEOUT)
-                return self.fig_to_b64(result)
+                return [self.fig_to_b64(result)]
             except (TimeoutError, TimeoutException):
                 raise TimeoutException()
 

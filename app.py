@@ -160,13 +160,10 @@ class MuseFlow(L.LightningFlow):
         if self.load_balancer.url:  # hack for getting the work url
             self.api_component.api_url = self.load_balancer.url
             self.dream_url = self.load_balancer.url
-            if self.slack_bot is not None:
-                self.slack_bot.run(self.load_balancer.url)
-                self.slack_bot_url = self.slack_bot.url
-                if not self.printed_url:
-                    print("model serve url=", self.load_balancer.url)
-                    print("API component url=", self.api_component.state_vars["vars"]["_layout"]["target"])
-                    self.printed_url = True
+            if not self.printed_url:
+                print("model serve url=", self.load_balancer.url)
+                print("API component url=", self.api_component.state_vars["vars"]["_layout"]["target"])
+                self.printed_url = True
 
         if self.load_testing and self.load_balancer.url:
             self.locust.run(self.load_balancer.url)
