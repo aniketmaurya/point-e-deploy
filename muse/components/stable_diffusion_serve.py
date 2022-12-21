@@ -1,6 +1,3 @@
-# !git clone https://github.com/openai/point-e.git
-# !cd point-e && python -m pip install -e . && cd ../
-
 import base64
 import io
 import os
