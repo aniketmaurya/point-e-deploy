@@ -2,6 +2,8 @@
 # !cd point-e && pip install -e . && cd ../
 
 import base64
+import matplotlib.pyplot as plt
+import io
 import os
 import os.path
 import tarfile
@@ -85,9 +87,17 @@ class StableDiffusionServe(L.LightningWork):
         print("loading model...")
 
 
+    def fig_to_b64(self, fig):
+        my_stringIObytes = io.BytesIO()
+        plt.savefig(my_stringIObytes, format='jpg')
+        my_stringIObytes.seek(0)
+        my_base64_jpgData = base64.b64encode(my_stringIObytes.read())
+        return my_base64_jpgData
+
 
     def predict(self, prompts: List[Data], entry_time: int):
         samples = None
+        prompts = [data.prompt for data in prompts]
         for x in tqdm(self._sampler.sample_batch_progressive(batch_size=1, model_kwargs=dict(texts=prompts))):
             samples = x
         
@@ -147,7 +157,7 @@ class StableDiffusionServe(L.LightningWork):
                     data.batch,
                     entry_time=entry_time,
                 ).result(timeout=INFERENCE_REQUEST_TIMEOUT)
-                return result
+                return self.fig_to_b64(result)
             except (TimeoutError, TimeoutException):
                 raise TimeoutException()
 
