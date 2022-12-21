@@ -1,6 +1,3 @@
-# !git clone https://github.com/openai/point-e.git
-# !cd point-e && python -m pip install -e . && cd ../
-
 import os
 import time
 import uuid
