@@ -1,4 +1,5 @@
 import base64
+import io
 import os
 import os.path
 import tarfile
@@ -10,46 +11,31 @@ from io import BytesIO
 from pathlib import Path
 from typing import List, Optional
 
+import matplotlib.pyplot as plt
+import torch
+from tqdm.auto import tqdm
+
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 
 import lightning as L  # noqa: E402
 import torch  # noqa: E402
 from lightning.app.storage import Drive  # noqa: E402
+from muse.CONST import (IMAGE_SIZE, INFERENCE_REQUEST_TIMEOUT,  # noqa: E402
+                        KEEP_ALIVE_TIMEOUT)
+from muse.utility.data_io import (Data, DataBatch,  # noqa: E402
+                                  TimeoutException)
 from PIL import Image  # noqa: E402
-
-from muse.CONST import (  # noqa: E402
-    IMAGE_SIZE,
-    INFERENCE_REQUEST_TIMEOUT,
-    KEEP_ALIVE_TIMEOUT,
-)
-from muse.utility.data_io import Data, DataBatch, TimeoutException  # noqa: E402
-
-
-class SafetyChecker:
-    def __init__(self, embeddings_path):
-        import clip as openai_clip
-
-        self.model, self.preprocess = openai_clip.load("ViT-B/32", device="cpu")
-        self.text_embeddings = torch.load(embeddings_path)
-
-    def __call__(self, images: List[Image.Image]):
-        images = torch.stack([self.preprocess(img) for img in images])
-        encoded_images = self.model.encode_image(images)
-
-        encoded_images = torch.nn.functional.normalize(encoded_images, p=2, dim=1)
-        similarity = torch.mm(encoded_images, self.text_embeddings.transpose(0, 1))
-        return torch.any(similarity > 0.3, dim=1).tolist()
 
 
 @dataclass
-class DiffusionBuildConfig(L.BuildConfig):
+class ModelBuildConfig(L.BuildConfig):
+    # !git clone https://github.com/openai/point-e.git
+    # !cd point-e && python -m pip install -e . && cd ../
     def build_commands(self):
         return [
-            "python -m pip install https://github.com/aniketmaurya/stable_diffusion_inference/archive/refs/tags/v0.0.2.tar.gz",  # noqa: E501
-            "pip install -e git+https://github.com/CompVis/taming-transformers.git@master#egg=taming-transformers -q",
-            "pip install -U 'clip@ git+https://github.com/openai/CLIP.git@main' -q",
+            "git clone https://github.com/openai/point-e.git",  # noqa: E501
+            "cd point-e && pip install -e .",
         ]
-
 
 class StableDiffusionServe(L.LightningWork):
     """The StableDiffusionServer handles the prediction.
@@ -60,66 +46,68 @@ class StableDiffusionServe(L.LightningWork):
     def __init__(
         self, safety_embeddings_drive: Optional[Drive] = None, safety_embeddings_filename: str = None, **kwargs
     ):
-        super().__init__(cloud_build_config=DiffusionBuildConfig(), **kwargs)
+        super().__init__(cloud_build_config=ModelBuildConfig(), **kwargs)
         self.safety_embeddings_drive = safety_embeddings_drive
         self.safety_embeddings_filename = safety_embeddings_filename
         self._model = None
         self._trainer = None
 
-    @staticmethod
-    def download_weights(url: str, target_folder: Path):
-        dest = target_folder / f"{os.path.basename(url)}"
-        if not os.path.exists(dest):
-            print("Downloading weights...")
-            urllib.request.urlretrieve(url, dest)
-            file = tarfile.open(dest)
-
-            # extracting file
-            file.extractall(target_folder)
-
     def build_pipeline(self):
-        """The `build_pipeline(...)` method builds a model and trainer."""
-        from stable_diffusion_inference import create_text2image
+        from point_e.diffusion.configs import (DIFFUSION_CONFIGS,
+                                               diffusion_from_config)
+        from point_e.diffusion.sampler import PointCloudSampler
+        from point_e.models.configs import MODEL_CONFIGS, model_from_config
+        from point_e.models.download import load_checkpoint
 
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        print("creating base model...")
+        base_name = "base40M-textvec"
+        base_model = model_from_config(MODEL_CONFIGS[base_name], device)
+        base_model.eval()
+        base_diffusion = diffusion_from_config(DIFFUSION_CONFIGS[base_name])
+
+        print("creating upsample model...")
+        upsampler_model = model_from_config(MODEL_CONFIGS["upsample"], device)
+        upsampler_model.eval()
+        upsampler_diffusion = diffusion_from_config(DIFFUSION_CONFIGS["upsample"])
+
+        print("downloading base checkpoint...")
+        base_model.load_state_dict(load_checkpoint(base_name, device))
+
+        print("downloading upsampler checkpoint...")
+        upsampler_model.load_state_dict(load_checkpoint("upsample", device))
+
+        self._sampler = PointCloudSampler(
+            device=device,
+            models=[base_model, upsampler_model],
+            diffusions=[base_diffusion, upsampler_diffusion],
+            num_points=[1024, 4096 - 1024],
+            aux_channels=["R", "G", "B"],
+            guidance_scale=[3.0, 0.0],
+            model_kwargs_key_filter=("texts", ""),  # Do not condition the upsampler at all
+        )
         print("loading model...")
-        # model url is loaded from stable_diffusion_inference library
-        # url: https://pl-public-data.s3.amazonaws.com/dream_stable_diffusion/v1-5-pruned-emaonly.ckpt
-        self._model = create_text2image(sd_variant=os.environ.get("SD_VARIANT", "sd1"))
-        self.safety_embeddings_drive.get(self.safety_embeddings_filename)
-        self._safety_checker = SafetyChecker(self.safety_embeddings_filename)
-        print("model loaded")
 
-    def predict(self, dreams: List[Data], entry_time: int):
-        if time.time() - entry_time > INFERENCE_REQUEST_TIMEOUT:
-            raise TimeoutException()
+    def fig_to_b64(self, fig):
+        my_stringIObytes = io.BytesIO()
+        plt.savefig(my_stringIObytes, format="jpg")
+        my_stringIObytes.seek(0)
+        my_base64_jpgData = base64.b64encode(my_stringIObytes.read())
+        return f"data:image/png;base64,{my_base64_jpgData}"
 
-        inference_steps = 50 if dreams[0].high_quality else 25
+    def predict(self, prompts: List[Data], entry_time: int):
+        from point_e.util.plotting import plot_point_cloud
 
-        prompts: List[str] = [dream.prompt for dream in dreams]
-        print(prompts)
+        samples = None
+        prompts = [data.prompt for data in prompts]
+        for x in tqdm(self._sampler.sample_batch_progressive(batch_size=1, model_kwargs=dict(texts=prompts))):
+            samples = x
 
-        predictions = self._model(prompts, image_size=IMAGE_SIZE, inference_steps=inference_steps)
-        pil_results: List[Image.Image] = [predictions] if isinstance(predictions, Image.Image) else predictions
-
-        nsfw_content = self._safety_checker(pil_results)
-        for i, nsfw in enumerate(nsfw_content):
-            if nsfw:
-                pil_results[i] = Image.open("assets/nsfw-warning.png")
-
-        results = []
-        for image in pil_results:
-            buffered = BytesIO()
-            image.save(buffered, format="PNG")
-            img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
-            # make sure pil_results is a single item array or it'll rewrite image
-            results.append({"image": f"data:image/png;base64,{img_str}"})
-
-        return results
+        pc = self._sampler.output_to_point_clouds(samples)[0]
+        fig = plot_point_cloud(pc, grid_size=3, fixed_bounds=((-0.75, -0.75, -0.75), (0.75, 0.75, 0.75)))
+        return fig
 
     def run(self):
-
-        if False and self.safety_embeddings_filename not in self.safety_embeddings_drive.list("."):
-            return
 
         import subprocess
 
@@ -171,7 +159,7 @@ class StableDiffusionServe(L.LightningWork):
                     data.batch,
                     entry_time=entry_time,
                 ).result(timeout=INFERENCE_REQUEST_TIMEOUT)
-                return result
+                return [self.fig_to_b64(result)]
             except (TimeoutError, TimeoutException):
                 raise TimeoutException()
 
