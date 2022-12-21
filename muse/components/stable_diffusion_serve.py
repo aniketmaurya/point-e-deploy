@@ -93,7 +93,7 @@ class StableDiffusionServe(L.LightningWork):
         plt.savefig(my_stringIObytes, format="jpg")
         my_stringIObytes.seek(0)
         my_base64_jpgData = base64.b64encode(my_stringIObytes.read()).decode("utf-8")
-        return f"data:image/png;base64,{my_base64_jpgData}"
+        return [{"image": f"data:image/png;base64,{my_base64_jpgData}"}]
 
     def predict(self, prompts: List[Data], entry_time: int):
         from point_e.util.plotting import plot_point_cloud
@@ -159,7 +159,7 @@ class StableDiffusionServe(L.LightningWork):
                     data.batch,
                     entry_time=entry_time,
                 ).result(timeout=INFERENCE_REQUEST_TIMEOUT)
-                return [self.fig_to_b64(result)]
+                return self.fig_to_b64(result)
             except (TimeoutError, TimeoutException):
                 raise TimeoutException()
 
