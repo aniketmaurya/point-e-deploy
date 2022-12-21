@@ -191,8 +191,6 @@ class MuseFlow(L.LightningFlow):
             idx = self._num_workers
             print(f"Upscale to {self._num_workers + 1}")
             work = StableDiffusionServe(
-                safety_embeddings_drive=self.safety_embeddings_drive,
-                safety_embeddings_filename=self.safety_checker_embedding_work.safety_embeddings_filename,
                 cloud_compute=L.CloudCompute(self.gpu_type, disk_size=30),
                 cache_calls=True,
                 parallel=True,

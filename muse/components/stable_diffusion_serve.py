@@ -93,7 +93,7 @@ class StableDiffusionServe(L.LightningWork):
         plt.savefig(my_stringIObytes, format="jpg")
         my_stringIObytes.seek(0)
         my_base64_jpgData = base64.b64encode(my_stringIObytes.read())
-        return my_base64_jpgData
+        return f"data:image/png;base64,{my_base64_jpgData}"
 
     def predict(self, prompts: List[Data], entry_time: int):
         from point_e.util.plotting import plot_point_cloud
