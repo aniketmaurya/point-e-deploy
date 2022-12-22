@@ -48,7 +48,7 @@ function Dream({ loading, dream, image, maxTime }: DreamProps) {
       sx={{
         textShadow: '0px 0px 6px rgba(255, 255, 255, 0.75)',
       }}>
-      Your inspiration will appear here
+      3D model will appear here
     </Typography>
   );
 }
@@ -72,7 +72,7 @@ function DreamSearch() {
       setRequestedDream(query);
       setLoading(true);
       try {
-        const result = await postDream(query, highQuality, lightningState.vars.dream_url);
+        const result = await postDream(query, lightningState.vars.dream_url);
         setImgResult(result.image);
       } catch {
         enqueueSnackbar({
@@ -157,19 +157,19 @@ function DreamSearch() {
               />
               <Box height={16} />
               <Row sx={{ 'justifyContent': 'space-between', '>div': { width: '100%' } }}>
-                <Row>
+                {/* <Row>
                   <Box mr={1}>
                     <Switch checked={!highQuality} onChange={() => setHighQuality(x => !x)} disabled={loading} />
                   </Box>
                   <Typography colorI={'primary'} fontFamily={'Roboto'} variant={'body2'}>
                     {highQuality ? 'High quality (slower)' : 'Fast'}
                   </Typography>
-                </Row>
+                </Row> */}
 
                 <Box sx={{ '.MuiButton-root': { borderRadius: 40 } }}>
                   <Button
                     disabled={!query || loading || !lightningState?.vars?.dream_url}
-                    text="Muse"
+                    text="Generate"
                     onClick={dreamIt}
                     fullWidth
                     icon={<FlashesIcon />}
