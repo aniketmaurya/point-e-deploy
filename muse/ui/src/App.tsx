@@ -39,7 +39,7 @@ type DreamProps = {
 function Dream({ loading, dream, image, maxTime }: DreamProps) {
   if (image) return null;
 
-  if (dream && loading) return <ProgressBar maxTime={maxTime} title={'Finding inspiration (~1-5 seconds)…'} />;
+  if (dream && loading) return <ProgressBar maxTime={maxTime} title={'Generating 3D model (~15 seconds)…'} />;
 
   return (
     <Typography
@@ -48,7 +48,7 @@ function Dream({ loading, dream, image, maxTime }: DreamProps) {
       sx={{
         textShadow: '0px 0px 6px rgba(255, 255, 255, 0.75)',
       }}>
-      Your inspiration will appear here
+      3D model will appear here
     </Typography>
   );
 }
@@ -57,7 +57,7 @@ function DreamSearch() {
   const { lightningState } = useLightningState();
 
   const { enqueueSnackbar } = useSnackbar();
-  const [query, setQuery] = React.useState<string>('Woman painting a large red egg in a dali landscape');
+  const [query, setQuery] = React.useState<string>('a red bike');
   const [loading, setLoading] = useState(false);
   const [imgResult, setImgResult] = React.useState<string | null>(null);
   const [placeHolderImage, setPlaceholderImage] = useState(MetaImage);
@@ -72,7 +72,7 @@ function DreamSearch() {
       setRequestedDream(query);
       setLoading(true);
       try {
-        const result = await postDream(query, highQuality, lightningState.vars.dream_url);
+        const result = await postDream(query, lightningState.vars.dream_url);
         setImgResult(result.image);
       } catch {
         enqueueSnackbar({
@@ -107,7 +107,7 @@ function DreamSearch() {
           <DownloadImageButton imgResult={imgResult} query={query} />
           <Box
             sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '80%' }}>
-            <Dream loading={loading} dream={requestedDream} image={imgResult} maxTime={highQuality ? 10 : 5} />
+            <Dream loading={loading} dream={requestedDream} image={imgResult} maxTime={highQuality ? 15 : 15} />
           </Box>
           <Box
             sx={{
@@ -157,19 +157,19 @@ function DreamSearch() {
               />
               <Box height={16} />
               <Row sx={{ 'justifyContent': 'space-between', '>div': { width: '100%' } }}>
-                <Row>
+                {/* <Row>
                   <Box mr={1}>
                     <Switch checked={!highQuality} onChange={() => setHighQuality(x => !x)} disabled={loading} />
                   </Box>
                   <Typography colorI={'primary'} fontFamily={'Roboto'} variant={'body2'}>
                     {highQuality ? 'High quality (slower)' : 'Fast'}
                   </Typography>
-                </Row>
+                </Row> */}
 
                 <Box sx={{ '.MuiButton-root': { borderRadius: 40 } }}>
                   <Button
                     disabled={!query || loading || !lightningState?.vars?.dream_url}
-                    text="Muse"
+                    text="Generate"
                     onClick={dreamIt}
                     fullWidth
                     icon={<FlashesIcon />}
@@ -290,7 +290,7 @@ const AppAbout = (props: Pick<StackProps, 'display' | 'paddingBottom' | 'padding
       variant="subtitle1"
       color={(theme: any) => theme.palette.grey['70']}
       marginTop={{ xs: '0 !important' }}>
-      Use AI to inspire your art
+      Generate 3D point clouds from text with OpenAI Point·E
     </Typography>
     <Box height={{ xs: 8 }} />
   </Stack>
