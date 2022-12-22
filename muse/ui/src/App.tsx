@@ -39,7 +39,7 @@ type DreamProps = {
 function Dream({ loading, dream, image, maxTime }: DreamProps) {
   if (image) return null;
 
-  if (dream && loading) return <ProgressBar maxTime={maxTime} title={'Finding inspiration (~1-5 seconds)…'} />;
+  if (dream && loading) return <ProgressBar maxTime={maxTime} title={'Generating 3D model (~10 seconds)…'} />;
 
   return (
     <Typography
@@ -57,7 +57,7 @@ function DreamSearch() {
   const { lightningState } = useLightningState();
 
   const { enqueueSnackbar } = useSnackbar();
-  const [query, setQuery] = React.useState<string>('Woman painting a large red egg in a dali landscape');
+  const [query, setQuery] = React.useState<string>('a red bike');
   const [loading, setLoading] = useState(false);
   const [imgResult, setImgResult] = React.useState<string | null>(null);
   const [placeHolderImage, setPlaceholderImage] = useState(MetaImage);
@@ -290,7 +290,7 @@ const AppAbout = (props: Pick<StackProps, 'display' | 'paddingBottom' | 'padding
       variant="subtitle1"
       color={(theme: any) => theme.palette.grey['70']}
       marginTop={{ xs: '0 !important' }}>
-      Use AI to inspire your art
+      Generate 3D point clouds from text with OpenAI Point·E
     </Typography>
     <Box height={{ xs: 8 }} />
   </Stack>
