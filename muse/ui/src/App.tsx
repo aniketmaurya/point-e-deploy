@@ -39,7 +39,7 @@ type DreamProps = {
 function Dream({ loading, dream, image, maxTime }: DreamProps) {
   if (image) return null;
 
-  if (dream && loading) return <ProgressBar maxTime={maxTime} title={'Generating 3D model (~10 seconds)…'} />;
+  if (dream && loading) return <ProgressBar maxTime={maxTime} title={'Generating 3D model (~15 seconds)…'} />;
 
   return (
     <Typography
@@ -107,7 +107,7 @@ function DreamSearch() {
           <DownloadImageButton imgResult={imgResult} query={query} />
           <Box
             sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '80%' }}>
-            <Dream loading={loading} dream={requestedDream} image={imgResult} maxTime={highQuality ? 10 : 5} />
+            <Dream loading={loading} dream={requestedDream} image={imgResult} maxTime={highQuality ? 15 : 15} />
           </Box>
           <Box
             sx={{
