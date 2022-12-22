@@ -1,22 +1,28 @@
 {
   "files": {
-    "main.css": "/static/css/main.d1c23a77.css",
-    "main.js": "/static/js/main.b6fb7c74.js",
+    "main.css": "/static/css/main.308b0c70.css",
+    "main.js": "/static/js/main.f5e2f9a3.js",
     "static/js/787.8c33e357.chunk.js": "/static/js/787.8c33e357.chunk.js",
     "static/media/header.png": "/static/media/header.1b3e67ecc5706f94a19d.png",
-    "static/media/UCity-Regular.otf": "/static/media/UCity-Regular.e28f5006c1976d08baaa.otf",
-    "static/media/UCity-Light.otf": "/static/media/UCity-Light.8352e423a843d9a0c52a.otf",
-    "static/media/UCity-Semibold.otf": "/static/media/UCity-Semibold.b37489cc447430fe4ba7.otf",
+    "static/media/UCity-Regular.woff": "/static/media/UCity-Regular.7a3b475525ed92dc7816.woff",
+    "static/media/UCity-Light.woff": "/static/media/UCity-Light.47cf3e33cb6bb1496c95.woff",
+    "static/media/UCity-Semibold.woff": "/static/media/UCity-Semibold.bb7aab96e378ebd6a651.woff",
+    "static/media/UCity-Regular.woff2": "/static/media/UCity-Regular.8afa44ac39706d62b62b.woff2",
+    "static/media/UCity-Light.woff2": "/static/media/UCity-Light.30446c15a21bf8a994e8.woff2",
+    "static/media/UCity-Semibold.woff2": "/static/media/UCity-Semibold.80655a0e8b4bb5f30545.woff2",
     "static/media/Logo.svg": "/static/media/Logo.a813b7478514b732f03964db61591480.svg",
     "static/media/Slack.svg": "/static/media/Slack.53435980573fa6fea1c93f596c9808c7.svg",
     "index.html": "/index.html",
+    "static/media/warning.svg": "/static/media/warning.5c542673e84e77ceb6a230bfea7f7263.svg",
     "static/media/Flashes.svg": "/static/media/Flashes.b681a57ea3fef62885ceced1b6630438.svg",
-    "main.d1c23a77.css.map": "/static/css/main.d1c23a77.css.map",
-    "main.b6fb7c74.js.map": "/static/js/main.b6fb7c74.js.map",
+    "static/media/error.svg": "/static/media/error.11892047d0183a4723b91dc0fb98cb95.svg",
+    "static/media/success.svg": "/static/media/success.5edae4c5b171e2c1c5a3c54273c47ba8.svg",
+    "main.308b0c70.css.map": "/static/css/main.308b0c70.css.map",
+    "main.f5e2f9a3.js.map": "/static/js/main.f5e2f9a3.js.map",
     "787.8c33e357.chunk.js.map": "/static/js/787.8c33e357.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.d1c23a77.css",
-    "static/js/main.b6fb7c74.js"
+    "static/css/main.308b0c70.css",
+    "static/js/main.f5e2f9a3.js"
   ]
 }
