@@ -107,8 +107,6 @@ class MuseFlow(L.LightningFlow):
         self.ui = ReactUI()
         self.api_component = APIUsageFlow()
 
-        self.safety_embeddings_ready = False
-
     @property
     def model_servers(self) -> List[StableDiffusionServe]:
         works = []
@@ -211,37 +209,4 @@ class MuseFlow(L.LightningFlow):
 
 
 if __name__ == "__main__":
-    app = L.LightningApp(
-        MuseFlow(),
-        info=AppInfo(
-            title="Use AI to inspire your art.",
-            favicon="https://storage.googleapis.com/grid-static/muse/favicon.ico",
-            description="Bring your words to life in seconds - powered by Lightning AI and Stable Diffusion.",
-            image="https://storage.googleapis.com/grid-static/header.png",
-            meta_tags=[
-                '<meta name="theme-color" content="#792EE5" />',
-                '<meta name="image" content="https://storage.googleapis.com/grid-static/header.png">'
-                '<meta itemprop="name" content="Use AI to inspire your art.">'
-                '<meta itemprop="description" content="Bring your words to life in seconds - powered by Lightning AI and Stable Diffusion.">'  # noqa
-                '<meta itemprop="image" content="https://storage.googleapis.com/grid-static/header.png">'
-                # <!-- Twitter -->
-                '<meta name="twitter:card" content="summary">'
-                '<meta name="twitter:title" content="Use AI to inspire your art.">'
-                '<meta name="twitter:description" content="Bring your words to life in seconds - powered by Lightning AI and Stable Diffusion.">'  # noqa
-                '<meta name="twitter:site" content="https://lightning.ai/muse">'
-                '<meta name="twitter:domain" content="https://lightning.ai/muse">'
-                '<meta name="twitter:creator" content="@LightningAI">'
-                '<meta name="twitter:image:src" content="https://storage.googleapis.com/grid-static/header.png">'
-                # <!-- Open Graph general (Facebook, Pinterest & Google+) -->
-                '<meta name="og:title" content="Use AI to inspire your art.">'
-                '<meta name="og:description" content="Bring your words to life in seconds - powered by Lightning AI and Stable Diffusion.">'  # noqa
-                '<meta name="og:url" content="https://lightning.ai/muse">'
-                '<meta property="og:image" content="https://storage.googleapis.com/grid-static/header.png" />',
-                '<meta property="og:image:type" content="image/png" />',
-                '<meta property="og:image:height" content="1114" />'
-                '<meta property="og:image:width" content="1112" />',
-                *(analytics_headers if ENABLE_ANALYTICS else []),
-            ],
-        ),
-        root_path=os.getenv("MUSE_ROOT_PATH", ""),
-    )
+    app = L.LightningApp(MuseFlow())
